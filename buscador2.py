@@ -43,12 +43,17 @@ if df is None:
 # Interfaz en Streamlit
 st.title("📦 Buscador de Productos")
 
-# Barra de búsqueda
-query = st.text_input("🔎 Buscar producto:")
+# Espacio para la búsqueda con botón
+col1, col2 = st.columns([3, 1])
 
-# Aplicar búsqueda solo si hay texto
-if query:
-    # Filtrar con método vectorizado (más rápido que apply)
+with col1:
+    query = st.text_input("🔎 Buscar producto:", key="query_input")
+
+with col2:
+    buscar = st.button("🔍 Buscar")
+
+# Aplicar búsqueda solo si se presiona el botón
+if buscar and query:
     mask = df.apply(lambda row: row.str.contains(query, case=False, na=False)).any(axis=1)
     df_filtrado = df[mask]
 else:
