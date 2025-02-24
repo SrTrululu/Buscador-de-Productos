@@ -16,7 +16,7 @@ else:
     st.stop()
 
 # Abre el Google Sheets por su ID
-spreadsheet_id = "1znQhorwDGB2YPlIF05pDqkwsC6dO8UB23vwVENjdBXQ"
+spreadsheet_id = "1hqbyLewjweB4uOCrnRYcVTdpSHCQN3WQ"
 hoja = cliente.open_by_key(spreadsheet_id)
 
 # Accede a una pestaña específica
