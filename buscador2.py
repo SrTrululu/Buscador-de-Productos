@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from streamlit_extras.app_refresh import st_autorefresh  # 👈 Para refrescar automáticamente
 
 # ID del archivo Excel en Google Drive
 file_id = "1hqbyLewjweB4uOCrnRYcVTdpSHCQN3WQ"
@@ -43,8 +44,14 @@ if df is None:
 # Interfaz en Streamlit
 st.title("📦 Buscador de Productos")
 
-# Barra de búsqueda
-query = st.text_input("🔎 Buscar producto:")
+# 🚀 Recargar la app automáticamente cada 500ms (0.5 segundos) 👇
+st_autorefresh(interval=500, key="refresh")
+
+# Barra de búsqueda (se actualiza sin Enter ni clics)
+query = st.text_input("🔎 Buscar producto:", value=st.session_state.get("query", ""))
+
+# Guardar la búsqueda en session_state
+st.session_state["query"] = query
 
 # Aplicar búsqueda solo si hay texto
 if query:
