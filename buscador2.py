@@ -21,18 +21,8 @@ def cargar_datos():
         df.columns = df.iloc[3]  # La fila 4 contiene los nombres de las columnas
         df = df[4:].reset_index(drop=True)  # Omitir las tres primeras filas
 
-        # Manejo de nombres de columnas
-        columnas_unicas = []
-        columnas_procesadas = set()
-        for i, col in enumerate(df.columns):
-            if pd.isna(col) or col.strip() == "" or col in columnas_procesadas:
-                nuevo_nombre = f"Columna_{i}"
-            else:
-                nuevo_nombre = col.strip()
-                columnas_procesadas.add(nuevo_nombre)
-            columnas_unicas.append(nuevo_nombre)
-
-        df.columns = columnas_unicas  # Asignar los nuevos nombres de columna
+        # Convertir todas las columnas a string para acelerar la búsqueda
+        df = df.astype(str).fillna("")
 
         # Renombrar columnas específicas si existen
         nombres_deseados = ["Producto", "Marca", "Precio"]
@@ -53,21 +43,16 @@ if df is None:
 # Interfaz en Streamlit
 st.title("📦 Buscador de Productos")
 
-# Inicializar estado de búsqueda
-if "query" not in st.session_state:
-    st.session_state.query = ""
+# Barra de búsqueda
+query = st.text_input("🔎 Buscar producto:")
 
-# Barra de búsqueda (se actualiza sin presionar Enter)
-query = st.text_input("🔎 Buscar producto:", value=st.session_state.query)
-
-# Filtrar solo si hay texto en la búsqueda
+# Aplicar búsqueda solo si hay texto
 if query:
-    df_filtrado = df[df.apply(lambda row: row.astype(str).str.contains(query, case=False, na=False).any(), axis=1)]
+    # Filtrar con método vectorizado (más rápido que apply)
+    mask = df.apply(lambda row: row.str.contains(query, case=False, na=False)).any(axis=1)
+    df_filtrado = df[mask]
 else:
     df_filtrado = df
 
-# Actualizar la búsqueda en session_state sin necesidad de callbacks
-st.session_state.query = query
-
-# Mostrar la tabla con más espacio
+# Mostrar la tabla optimizada
 st.data_editor(df_filtrado, height=600, use_container_width=True)
