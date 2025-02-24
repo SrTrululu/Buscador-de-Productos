@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import time
 
 # ID del archivo Excel en Google Drive
 file_id = "1hqbyLewjweB4uOCrnRYcVTdpSHCQN3WQ"
@@ -8,7 +7,7 @@ file_id = "1hqbyLewjweB4uOCrnRYcVTdpSHCQN3WQ"
 # URL de descarga directa de Google Drive
 excel_url = f"https://drive.google.com/uc?export=download&id={file_id}"
 
-# Cargar el archivo Excel con Pandas
+# Cargar datos en caché para mejorar rendimiento
 @st.cache_data
 def cargar_datos():
     try:
@@ -58,20 +57,17 @@ st.title("📦 Buscador de Productos")
 if "query" not in st.session_state:
     st.session_state.query = ""
 
-# Evitar múltiples recargas instantáneas
-def update_query():
-    time.sleep(0.2)  # Pequeño delay para mejorar rendimiento
-    st.session_state.query = st.session_state.input_text
-    st.rerun()  # Recargar la app con el nuevo valor
+# Barra de búsqueda (se actualiza sin presionar Enter)
+query = st.text_input("🔎 Buscar producto:", value=st.session_state.query)
 
-# Barra de búsqueda con actualización optimizada
-st.text_input("🔎 Buscar producto:", key="input_text", on_change=update_query)
-
-# Aplicar filtro solo si hay búsqueda
-if st.session_state.query:
-    df_filtrado = df[df.apply(lambda row: row.astype(str).str.contains(st.session_state.query, case=False, na=False).any(), axis=1)]
+# Filtrar solo si hay texto en la búsqueda
+if query:
+    df_filtrado = df[df.apply(lambda row: row.astype(str).str.contains(query, case=False, na=False).any(), axis=1)]
 else:
     df_filtrado = df
+
+# Actualizar la búsqueda en session_state sin necesidad de callbacks
+st.session_state.query = query
 
 # Mostrar la tabla con más espacio
 st.data_editor(df_filtrado, height=600, use_container_width=True)
