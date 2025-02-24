@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# ID del archivo Excel en Google Drive (reemplázalo con tu ID real)
+# ID del archivo Excel en Google Drive
 file_id = "1hqbyLewjweB4uOCrnRYcVTdpSHCQN3WQ"
 
 # URL de descarga directa de Google Drive
@@ -9,7 +9,6 @@ excel_url = f"https://drive.google.com/uc?export=download&id={file_id}"
 
 # Cargar el archivo Excel con Pandas
 try:
-    # Cargar la pestaña "Buscar" del Excel
     df = pd.read_excel(excel_url, sheet_name="Buscar", engine="openpyxl")
 
     # Verificar que hay suficientes filas antes de procesar
@@ -21,7 +20,7 @@ try:
     df.columns = df.iloc[3]  # La fila 4 contiene los nombres de las columnas
     df = df[4:].reset_index(drop=True)  # Omitir las tres primeras filas
 
-    # Eliminar columnas vacías y manejar nombres duplicados
+    # Manejo de nombres de columnas
     columnas_unicas = []
     columnas_procesadas = set()
     for i, col in enumerate(df.columns):
@@ -47,11 +46,19 @@ except Exception as e:
 # Interfaz en Streamlit
 st.title("📦 Buscador de Productos")
 
-# Barra de búsqueda
-query = st.text_input("🔎 Buscar producto:")
+# Inicializar estado de búsqueda
+if "query" not in st.session_state:
+    st.session_state.query = ""
 
-# Filtrar los datos si hay una búsqueda
-df_filtrado = df[df.apply(lambda row: row.astype(str).str.contains(query, case=False, na=False).any(), axis=1)] if query else df
+# Función para actualizar búsqueda sin Enter
+def update_query():
+    st.session_state.query = st.session_state.input_text
+
+# Barra de búsqueda con detección en tiempo real
+st.text_input("🔎 Buscar producto:", key="input_text", on_change=update_query)
+
+# Filtrar los datos automáticamente cuando cambia el input
+df_filtrado = df[df.apply(lambda row: row.astype(str).str.contains(st.session_state.query, case=False, na=False).any(), axis=1)] if st.session_state.query else df
 
 # Mostrar la tabla con más espacio
 st.data_editor(df_filtrado, height=600, use_container_width=True)
